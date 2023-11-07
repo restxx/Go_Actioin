@@ -7,7 +7,7 @@ import (
 
 func main() {
 
-	log.Printf("hello world1")
+	log.Printf("hello world")
 }
 func init() {
 	file := "./" + "message" + ".txt"

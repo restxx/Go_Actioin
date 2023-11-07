@@ -24,13 +24,23 @@ jobs:
         run: |
           go build -o myapp .
 
+      - name: Get Host and Port
+        id: host_and_port
+        run: |
+          HOST_WITH_PORT="${{ secrets.SERVER_HOST_WITH_PORT }}"
+          IFS=":" read -ra HOST_AND_PORT <<< "$HOST_WITH_PORT"
+          echo "Host: ${HOST_AND_PORT[0]}"
+          echo "Port: ${HOST_AND_PORT[1]}"
+        shell: bash
+
       - name: Deploy to Server
         uses: appleboy/ssh-action@v0.1.4
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: ${{ steps.host_and_port.outputs.Host }}
+          port: ${{ steps.host_and_port.outputs.Port }}
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             kill -9 $(lsof -t -i:8080) || true
-            scp myapp ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USERNAME }}/
-            ssh ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} 'nohup /home/${{secrets.SERVER_USERNAME}}/myapp > /dev/null 2>&1 &'
+            scp -P ${{ steps.host_and_port.outputs.Port }}  myapp ${{ secrets.SERVER_USERNAME }}@${{ steps.host_and_port.outputs.Host }}:/home/${{ secrets.SERVER_USERNAME }}/
+            ssh ${{ secrets.SERVER_USERNAME }}@${{ steps.host_and_port.outputs.Host }} -p ${{ steps.host_and_port.outputs.Port }} 'nohup /home/${{secrets.SERVER_USERNAME}}/myapp > /dev/null 2>&1 &'

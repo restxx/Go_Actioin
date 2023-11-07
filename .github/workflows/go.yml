@@ -6,32 +6,32 @@ on:
       - main
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  deploy:
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    runs-on: ubuntu-latest   # 使用ubuntu系统镜像运行自动化脚本
+
+    steps:  # 自动化步骤
+      - uses: actions/checkout@v2   # 第一步，下载代码仓库
+
+      - name: Deploy to Server  # 第二步，rsync推文件
+        uses: AEnterprise/rsync-deploy@v1.0  # 使用别人包装好的步骤镜像
+        env:
+          DEPLOY_KEY: ${{ secrets.SERVER_KEY }}   # 引用配置，SSH私钥
+          ARGS: -avz --delete   # rsync参数
+          SERVER_PORT: '58022'  # SSH端口
+          FOLDER: ./  # 要推送的文件夹，路径相对于代码仓库的根目录
+          SERVER_IP: ${{ secrets.SERVER_HOST }}  # 引用配置，服务器的host名（IP或者域名domain.com）
+          USERNAME: ${{ secrets.SERVER_USERNAME }}  # 引用配置，服务器登录名
+          SERVER_DESTINATION: /home/root  # 部署到目标文件夹
+      - name: Restart server   # 第三步，重启服务
+        uses: appleboy/ssh-action@master
         with:
-          submodules: 'recursive'
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install build-essential -y
-
-      - name: Build
-        run: |
-          go build -o myapp .
-
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v0.1.4
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          port: 58022
+          host: ${{ secrets.SERVER_HOST }}  # 下面三个配置与上一步类似
+          port: '58022'
           username: ${{ secrets.SERVER_USERNAME }}
-          password: ${{ secrets.SERVER_PASSWORD }}
+          key: ${{ secrets.SERVER_KEY }}
+          # 重启的脚本，根据自身情况做相应改动，一般要做的是migrate数据库以及重启服务器
           script: |
-            kill -9 $(lsof -t -i:8080) || true
-            scp -P 58022  myapp ${{ secrets.SERVER_USERNAME }}@doc007.tpddns.cn:/home/${{ secrets.SERVER_USERNAME }}/
-            ssh ${{ secrets.SERVER_USERNAME }}@doc007.tpddns.cn -p 58022 'nohup /home/${{secrets.SERVER_USERNAME}}/myapp > /dev/null 2>&1 &'
+            cd /home/root/Go_Actioin
+            go build main.go
+            ./main

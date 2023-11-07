@@ -42,5 +42,5 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             kill -9 $(lsof -t -i:8080) || true
-            scp -P ${{ steps.host_and_port.outputs.Port }}  myapp ${{ secrets.SERVER_USERNAME }}@${{ steps.host_and_port.outputs.Host }}:/home/${{ secrets.SERVER_USERNAME }}/
-            ssh ${{ secrets.SERVER_USERNAME }}@${{ steps.host_and_port.outputs.Host }} -p ${{ steps.host_and_port.outputs.Port }} 'nohup /home/${{secrets.SERVER_USERNAME}}/myapp > /dev/null 2>&1 &'
+            scp -P 58022  myapp ${{ secrets.SERVER_USERNAME }}@${{ steps.host_and_port.outputs.Host }}:/home/${{ secrets.SERVER_USERNAME }}/
+            ssh ${{ secrets.SERVER_USERNAME }}@${{ steps.host_and_port.outputs.Host }} -p 58022 'nohup /home/${{secrets.SERVER_USERNAME}}/myapp > /dev/null 2>&1 &'

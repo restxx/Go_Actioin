@@ -1,28 +1,36 @@
-# This workflow will build a golang project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
-name: Go
+name: Deploy to Server
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.20'
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential -y
 
-    - name: Build
-      run: go build -v ./...
+      - name: Build
+        run: |
+          go build -o myapp .
 
-    - name: Test
-      run: go test -v ./...
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v0.1.4
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            kill -9 $(lsof -t -i:8080) || true
+            scp myapp ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }}:/home/${{ secrets.SERVER_USERNAME }}/
+            ssh ${{ secrets.SERVER_USERNAME }}@${{ secrets.SERVER_HOST }} 'nohup /home/${{secrets.SERVER_USERNAME}}/myapp > /dev/null 2>&1 &'

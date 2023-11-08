@@ -34,6 +34,5 @@ jobs:
           script: |
             kill -9 $(lsof -t -i:8888) || true
             cd /home/root/Go_Action
-            go mod tidy
             go build main.go
             nohup ./main > /dev/null 2>&1 &

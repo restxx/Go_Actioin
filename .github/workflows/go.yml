@@ -32,6 +32,7 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           # 重启的脚本，根据自身情况做相应改动，一般要做的是migrate数据库以及重启服务器
           script: |
+            kill -9 $(lsof -t -i:8888) || true
             cd /home/root/Go_Action
             go build main.go
             ./main

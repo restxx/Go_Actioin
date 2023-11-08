@@ -36,4 +36,4 @@ jobs:
             cd /home/root/Go_Action
             go mod tidy
             go build main.go
-            ./main
+            nohup ./main > /dev/null 2>&1 &

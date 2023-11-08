@@ -24,7 +24,7 @@ import (
 func main() {
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) {
-		c.String(200, "Hello, World!")
+		c.String(200, "Hello, World!\n")
 	})
 	r.Run("0.0.0.0:8888") // listen and serve on 0.0.0.0:8080
 }
